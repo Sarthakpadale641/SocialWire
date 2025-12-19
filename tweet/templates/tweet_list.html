@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+
+{% block title %} 
+{% if request.resolver_match.url_name == 'saved_list' %}Saved
+{% elif request.resolver_match.url_name == 'history_list' %}History
+{% elif request.resolver_match.url_name == 'discover_list' %}Discover
+{% else %}Home{% endif %} - SocialWire
+{% endblock %}
+
+{% block content %}
+
+<!-- Discover Search Bar -->
+{% if request.resolver_match.url_name == 'discover_list' %}
+<div class="mb-4">
+    <form method="get" action="{% url 'discover_list' %}">
+        <div class="input-group">
+            <span class="input-group-text bg-dark border-secondary border-opacity-25 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" name="q" class="form-control form-control-lg bg-dark border-secondary border-opacity-25 text-white" placeholder="Search tweets, people..." value="{{ request.GET.q|default:'' }}">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<!-- Create Post Trigger (Only on Home) -->
+{% if request.resolver_match.url_name == 'tweet_list' and user.is_authenticated %}
+<div class="d-flex align-items-center mb-4 p-3 rounded" style="background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);">
+    <div class="user-avatar-placeholder me-3">
+        {{ user.username|slice:":1"|upper }}
+    </div>
+    <a href="{% url 'tweet_create' %}" class="form-control text-muted text-decoration-none border-0" style="background-color: var(--bg-input);">
+        What's on your mind?
+    </a>
+    <a href="{% url 'tweet_create' %}" class="btn btn-icon ms-2 text-muted"><i class="fa-regular fa-image"></i></a>
+    <a href="{% url 'tweet_create' %}" class="btn btn-icon text-muted"><i class="fa-solid fa-link"></i></a>
+</div>
+{% endif %}
+
+<div class="feed-stream">
+    {% for tweet in tweets %}
+        <div class="post-card">
+            <div class="post-header">
+                <div class="user-avatar-placeholder">
+                    {{ tweet.user.username|slice:":1"|upper }}
+                </div>
+                <div class="d-flex flex-column">
+                    <a href="{% url 'tweet_detail' tweet.id %}" class="post-author">{{tweet.user.username}}</a>
+                    <span class="post-info">{{ tweet.created_at|timesince }} ago</span>
+                </div>
+                
+                <div class="ms-auto dropdown">
+                     <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-ellipsis"></i>
+                     </button>
+                     <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><button class="dropdown-item" onclick="sharePost({{tweet.id}})"><i class="fa-solid fa-share me-2"></i> Share</button></li>
+                        {% if tweet.user == request.user %}
+                        <li><a class="dropdown-item" href="{% url 'tweet_edit' tweet.id %}"><i class="fa-solid fa-pen me-2"></i> Edit</a></li>
+                        <li>
+                            <form method="post" action="{% url 'tweet_delete' tweet.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-trash me-2"></i> Delete</button>
+                            </form>
+                        </li>
+                        {% endif %}
+                     </ul>
+                </div>
+            </div>
+
+            <div class="post-content">
+                <a href="{% url 'tweet_detail' tweet.id %}" class="text-decoration-none text-reset">
+                    {{tweet.text|linebreaksbr}}
+                </a>
+            </div>
+
+            {% if tweet.photo %}
+            <div class="post-media-container bg-black">
+                <a href="{% url 'tweet_detail' tweet.id %}">
+                    <img src="{{ tweet.photo.url }}" class="post-media" alt="Post content">
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="post-actions">
+                <button class="action-btn btn-share" onclick="sharePost({{tweet.id}})"><i class="fa-solid fa-share"></i> Share</button>
+                
+                {% if user.is_authenticated %}
+                    {% if tweet.id in saved_tweet_ids %}
+                    <a href="{% url 'tweet_save' tweet.id %}" class="action-btn text-decoration-none ms-auto text-accent">
+                        <i class="fa-solid fa-bookmark"></i> Saved
+                    </a>
+                    {% else %}
+                    <a href="{% url 'tweet_save' tweet.id %}" class="action-btn text-decoration-none ms-auto">
+                        <i class="fa-regular fa-bookmark"></i> Save
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="text-center mt-5 text-muted">
+            {% if request.resolver_match.url_name == 'saved_list' %}
+                <i class="fa-regular fa-bookmark fa-3x mb-3"></i>
+                <h3>No saved posts</h3>
+                <p>Save posts to read them later!</p>
+            {% elif request.resolver_match.url_name == 'history_list' %}
+                <i class="fa-solid fa-clock-rotate-left fa-3x mb-3"></i>
+                <h3>No history yet</h3>
+                <p>Posts you view will appear here.</p>
+            {% elif request.resolver_match.url_name == 'discover_list' %}
+                <i class="fa-solid fa-compass fa-3x mb-3"></i>
+                <h3>Nothing found</h3>
+                <p>Try searching for something else.</p>
+            {% else %}
+                <i class="fa-solid fa-ghost fa-3x mb-3"></i>
+                <h3>It's quiet in here...</h3>
+                <p>Start the conversation!</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

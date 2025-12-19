@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %} 
+{% if form.instance.pk %}Edit Post{% else %}Create Post{% endif %} - SocialWire 
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card mt-4 bg-transparent border-0"> <!-- Use standard card structure but rely on our global overrides -->
+            <div class="post-card p-4"> <!-- Reuse post-card style for the form container -->
+                <h2 class="mb-4 text-white"><i class="fa-solid fa-pen-nib text-accent me-2"></i> {% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}</h2>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top border-secondary border-opacity-25">
+                        <a href="{% url 'tweet_list' %}" class="btn btn-outline-secondary border-0">Cancel</a>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fa-solid fa-paper-plane me-2"></i> {% if form.instance.pk %}Save Changes{% else %}Post{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

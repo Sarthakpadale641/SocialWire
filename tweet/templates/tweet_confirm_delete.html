@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %} 
+SocialWire 
+{% endblock %}
+
+{% block content %}
+
+<h1 class="text-center mt-5">Are you sure that you want to delete tweet ?</h1>
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Yes, delete</button>
+    <a class="btn btn-success" href="{% url 'tweet_list' %}">Cancel</a>
+</form>
+
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %} 
+Tweet by {{ tweet.user.username }} - SocialWire
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="mb-3">
+            <a href="javascript:history.back()" class="text-decoration-none text-muted">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <div class="post-card">
+            <div class="post-header">
+                <div class="user-avatar-placeholder">
+                    {{ tweet.user.username|slice:":1"|upper }}
+                </div>
+                <div class="d-flex flex-column">
+                    <a href="#" class="post-author">{{tweet.user.username}}</a>
+                    <span class="post-info">{{ tweet.created_at|date:"F j, Y, g:i a" }}</span>
+                </div>
+                
+                <div class="ms-auto dropdown">
+                     <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-ellipsis"></i>
+                     </button>
+                     <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><button class="dropdown-item" onclick="sharePost({{tweet.id}})"><i class="fa-solid fa-share me-2"></i> Share</button></li>
+                        {% if tweet.user == request.user %}
+                        <li><a class="dropdown-item" href="{% url 'tweet_edit' tweet.id %}"><i class="fa-solid fa-pen me-2"></i> Edit</a></li>
+                        <li>
+                            <form method="post" action="{% url 'tweet_delete' tweet.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-trash me-2"></i> Delete</button>
+                            </form>
+                        </li>
+                        {% endif %}
+                     </ul>
+                </div>
+            </div>
+
+            <div class="post-content" style="font-size: 1.1rem;">
+                {{tweet.text|linebreaksbr}}
+            </div>
+
+            {% if tweet.photo %}
+            <div class="post-media-container bg-black">
+                <img src="{{ tweet.photo.url }}" class="post-media" alt="Post content">
+            </div>
+            {% endif %}
+
+            <div class="post-actions">
+                <button class="action-btn btn-share" onclick="sharePost({{tweet.id}})"><i class="fa-solid fa-share"></i> Share</button>
+                
+                {% if user.is_authenticated %}
+                <a href="{% url 'tweet_save' tweet.id %}" class="action-btn text-decoration-none ms-auto {% if is_saved %}text-accent{% endif %}">
+                    <i class="{% if is_saved %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i> {% if is_saved %}Saved{% else %}Save{% endif %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
